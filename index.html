@@ -1,0 +1,180 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ViralHook Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes shine { 100% { left: 125%; } }
+        .animate-shine { animation: shine 0.8s ease-in-out; }
+        body { background-color: #050505; color: white; font-family: sans-serif; }
+        .glass-card { background: #111; border: 1px solid #222; border-radius: 24px; padding: 24px; }
+        input, select, textarea { background: #000 !important; border: 1px solid #333 !important; color: white !important; outline: none; }
+        .btn-pink { background: linear-gradient(90deg, #ff0050, #ff4081); }
+        .saved-item { border-left: 3px solid #ff0050; background: #0a0a0a; }
+    </style>
+</head>
+<body class="p-4 pb-24">
+
+    <div class="max-w-md mx-auto space-y-8">
+        <header class="text-center pt-8">
+            <div class="inline-block p-4 bg-gradient-to-br from-pink-500 to-blue-500 rounded-2xl shadow-lg shadow-pink-500/20 mb-4">
+                <span style="font-size: 30px;">⚡</span>
+            </div>
+            <h1 class="text-4xl font-black tracking-tighter bg-gradient-to-r from-pink-500 via-purple-500 to-blue-400 bg-clip-text text-transparent">VIRALHOOK</h1>
+            <p class="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-bold mt-2">Precision TikTok Content</p>
+        </header>
+
+        <div class="glass-card space-y-6">
+            <div>
+                <label class="text-[10px] font-black text-pink-500 uppercase tracking-widest block mb-2">Niche / Topic</label>
+                <input type="text" id="topic" placeholder="e.g. Side Hustles" class="w-full p-4 rounded-xl font-medium">
+            </div>
+
+            <div>
+                <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-2">Strategy Style</label>
+                <div class="grid grid-cols-3 gap-2" id="styleGrid">
+                    </div>
+            </div>
+
+            <div id="customArea" class="hidden animate-pulse">
+                <label class="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-2">Custom Formula ({t} = topic)</label>
+                <textarea id="customTemplate" class="w-full p-4 rounded-xl h-24 resize-none">How I used {t} to change my life</textarea>
+            </div>
+
+            <button onclick="generate()" class="w-full py-5 btn-pink rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-pink-600/20 active:scale-95 transition-all">
+                🚀 Generate Hooks
+            </button>
+        </div>
+
+        <div id="results" class="space-y-4"></div>
+
+        <div id="vaultSection" class="hidden mt-10 pt-8 border-t border-white/5 space-y-4">
+            <h2 class="text-xs font-black text-pink-500 uppercase tracking-[0.2em]">Saved Vault</h2>
+            <div id="vaultItems" class="space-y-3"></div>
+        </div>
+
+        <div class="pt-4">
+            <a href="https://www.buymeacoffee.com/Apps4u25" target="_blank" class="group relative flex items-center justify-between bg-gradient-to-r from-[#FF813F] to-[#fd9939] p-5 rounded-2xl shadow-2xl active:scale-95 transition-all overflow-hidden">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-white/20 rounded-xl text-xl">☕</div>
+                    <div class="flex flex-col text-left">
+                        <span class="text-[10px] font-black text-white/70 uppercase tracking-widest">Creator Support</span>
+                        <span class="text-lg font-black text-white">Buy me a coffee</span>
+                    </div>
+                </div>
+                <div class="bg-white/20 p-2 rounded-full text-white">→</div>
+            </a>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-4 rounded-full text-xs font-black shadow-2xl hidden z-50"></div>
+
+    <script>
+        const templates = {
+            curiosity: ["The secret way I used {t} to blow up.", "Why everything you know about {t} is wrong.", "I found a {t} loophole that still works.", "Stop scrolling if you want to master {t}.", "The truth about {t} no one tells you."],
+            story: ["How {t} took me from zero to hero.", "I tried {t} for 30 days and this happened.", "My biggest {t} mistake (don't do this).", "How I finally cracked the code on {t}.", "I spent $1000 on {t} research, here it is."],
+            controversial: ["{t} is actually a waste of time.", "Stop listening to {t} experts.", "The {t} advice you hear is mostly a lie.", "Unpopular opinion: {t} is overrated.", "Why I stopped doing {t} the 'normal' way."],
+            educational: ["How to master {t} without the struggle.", "Everything I know about {t} in 60 seconds.", "A beginner's guide to professional {t}."],
+            mistake: ["Stop doing {t} until you watch this.", "The #1 mistake people make with {t}.", "Your {t} will fail if you keep doing this."],
+            listicle: ["5 {t} tools that feel like cheating.", "3 ways to improve your {t} overnight.", "7 secrets to {t} that experts hide."],
+            speed: ["How to get better at {t} in 24 hours.", "The fastest way to see results with {t}.", "Fix your {t} in less than 5 minutes."],
+            custom: []
+        };
+
+        let currentStyle = 'curiosity';
+        let savedHooks = [];
+
+        // Initialize Styles
+        const grid = document.getElementById('styleGrid');
+        Object.keys(templates).forEach(s => {
+            const btn = document.createElement('button');
+            btn.innerText = s;
+            btn.id = 'btn-' + s;
+            btn.className = `py-2.5 rounded-xl text-[9px] font-black uppercase border transition-all ${s === currentStyle ? 'bg-white/10 border-white/30' : 'border-white/5 text-gray-500'}`;
+            btn.onclick = () => setStyle(s);
+            grid.appendChild(btn);
+        });
+
+        function setStyle(s) {
+            document.getElementById('btn-' + currentStyle).className = 'py-2.5 rounded-xl text-[9px] font-black uppercase border border-white/5 text-gray-500';
+            currentStyle = s;
+            document.getElementById('btn-' + s).className = 'py-2.5 rounded-xl text-[9px] font-black uppercase border bg-white/10 border-white/30 text-white';
+            document.getElementById('customArea').style.display = s === 'custom' ? 'block' : 'none';
+        }
+
+        function generate() {
+            const t = document.getElementById('topic').value || 'this topic';
+            const res = document.getElementById('results');
+            res.innerHTML = '';
+            
+            let list = [];
+            if (currentStyle === 'custom') {
+                const temp = document.getElementById('customTemplate').value;
+                if(!temp.includes('{t}')) return toast("Use {t} in template!");
+                list = [temp];
+            } else {
+                list = templates[currentStyle];
+            }
+
+            list.forEach(hookText => {
+                const final = hookText.replace(/{t}/g, t);
+                const card = document.createElement('div');
+                card.className = "bg-[#0f0f0f] border border-white/5 rounded-3xl p-6 space-y-4 shadow-xl";
+                card.innerHTML = `
+                    <p class="text-xl font-semibold leading-tight text-gray-100">${final}</p>
+                    <div class="flex gap-2">
+                        <button onclick="copyText('${final.replace(/'/g, "\\'")}')" class="flex-1 py-3 bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">COPY</button>
+                        <button onclick="saveHook('${final.replace(/'/g, "\\'")}')" class="flex-1 py-3 bg-blue-500/10 text-blue-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">SAVE</button>
+                    </div>
+                `;
+                res.appendChild(card);
+            });
+            window.scrollTo({ top: 500, behavior: 'smooth' });
+        }
+
+        function copyText(txt) {
+            const el = document.createElement('textarea');
+            el.value = txt;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            toast("Copied!");
+        }
+
+        function saveHook(txt) {
+            if(savedHooks.includes(txt)) return toast("Already saved!");
+            savedHooks.push(txt);
+            renderVault();
+            toast("Saved to Vault!");
+        }
+
+        function renderVault() {
+            const v = document.getElementById('vaultSection');
+            const items = document.getElementById('vaultItems');
+            v.style.display = savedHooks.length ? 'block' : 'none';
+            items.innerHTML = '';
+            savedHooks.forEach((h, i) => {
+                const d = document.createElement('div');
+                d.className = "bg-[#080808] border-l-2 border-pink-600 p-4 rounded-r-2xl flex justify-between items-center gap-4 shadow-lg";
+                d.innerHTML = `<p class="text-sm text-gray-400 italic flex-1 line-clamp-2">"${h}"</p>
+                               <button onclick="copyText('${h.replace(/'/g, "\\'")}')" class="text-gray-500 hover:text-white">COPY</button>`;
+                items.appendChild(d);
+            });
+        }
+
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
+        }
+    </script>
+</body>
+</html>
+
+
+```
