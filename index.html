@@ -1,0 +1,244 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ViralHook Generator</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #121212;
+            --primary: #ff0050;
+            --secondary: #00f2ea;
+            --text: #ffffff;
+            --text-dim: #a0a0a0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, system-ui, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #222;
+            margin-bottom: 25px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--secondary);
+        }
+
+        button.main-btn {
+            width: 100%;
+            background: linear-gradient(45deg, var(--primary), #cc0040);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 10px 20px rgba(255, 0, 80, 0.2);
+        }
+
+        button.main-btn:active {
+            transform: scale(0.97);
+        }
+
+        #results {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hook-box {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 15px;
+            border: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hook-text {
+            font-size: 1rem;
+            line-height: 1.4;
+            padding-right: 10px;
+        }
+
+        .copy-btn {
+            background: #222;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: black;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 700;
+            display: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <header>
+        <h1>ViralHook</h1>
+        <p style="color: #666; margin-top: 5px;">TikTok Hook Generator</p>
+    </header>
+
+    <div class="card">
+        <div class="field">
+            <label>Niche / Topic</label>
+            <input type="text" id="topic" placeholder="e.g. Crypto, Fitness, Cooking" autocomplete="off">
+        </div>
+        <div class="field">
+            <label>Style</label>
+            <select id="style">
+                <option value="curiosity">Curiosity</option>
+                <option value="story">Story</option>
+                <option value="controversial">Controversial</option>
+                <option value="authority">Authority</option>
+            </select>
+        </div>
+        <button class="main-btn" onclick="generate()">Generate 10 Hooks</button>
+    </div>
+
+    <div id="results"></div>
+</div>
+
+<div id="toast" class="toast">Copied!</div>
+<textarea id="helper" style="position: absolute; left: -9999px;"></textarea>
+
+<script>
+    const data = {
+        curiosity: ["The hidden reason {topic} isn't working.", "Stop scrolling if you want the truth about {topic}.", "I found a {topic} loophole you need to see.", "This {topic} hack feels illegal to know.", "99% of people fail at {topic} because of this.", "The secret to {topic} nobody tells you.", "Why your {topic} strategy is actually failing.", "I tried every {topic} tip, this is the only one that works.", "This {topic} insight will change your life.", "The bridge between you and {topic} success is this."],
+        story: ["How I mastered {topic} in only 30 days.", "I almost quit {topic} until I found this.", "This is the {topic} mistake that cost me everything.", "How {topic} took me from zero to hero.", "What I wish I knew before starting {topic}.", "My biggest {topic} win came from this one move.", "I spent 100 hours researching {topic} so you don't have to.", "The hardest lesson I learned about {topic}.", "Why I stopped doing {topic} the old way.", "My life changed when I discovered this {topic} trick."],
+        controversial: ["Unpopular opinion: {topic} is a waste of time.", "Stop listening to {topic} gurus immediately.", "{topic} advice on this app is mostly garbage.", "Why {topic} is actually killing your progress.", "I'm going to get cancelled for this {topic} take.", "The dark side of {topic} nobody talks about.", "Your favorite {topic} creator is lying to you.", "Why I'm officially done with {topic}.", "The 'perfect' {topic} routine is a scam.", "You don't need hard work to win at {topic}."],
+        authority: ["3 non-negotiable rules for {topic}.", "How to get {topic} results like a pro.", "The exact {topic} blueprint for success.", "Steal my {topic} workflow today.", "Master {topic} with these 3 simple steps.", "The only {topic} guide you'll ever need.", "If I started {topic} from scratch, I'd do this.", "The framework for winning at {topic}.", "How to automate your {topic} results.", "Top 1% secrets for {topic} mastery."]
+    };
+
+    function generate() {
+        const topic = document.getElementById('topic').value || "this";
+        const style = document.getElementById('style').value;
+        const list = data[style];
+        const container = document.getElementById('results');
+        
+        container.innerHTML = '';
+        
+        list.forEach(t => {
+            const hook = t.replace('{topic}', topic);
+            const div = document.createElement('div');
+            div.className = 'hook-box';
+            div.innerHTML = `
+                <div class="hook-text">${hook}</div>
+                <button class="copy-btn" onclick="copy('${hook.replace(/'/g, "\\'")}', this)">COPY</button>
+            `;
+            container.appendChild(div);
+        });
+        
+        window.scrollTo({top: container.offsetTop - 20, behavior: 'smooth'});
+    }
+
+    function copy(text, btn) {
+        const helper = document.getElementById('helper');
+        helper.value = text;
+        helper.select();
+        document.execCommand('copy');
+        
+        btn.innerText = '✓';
+        btn.style.background = '#27ae60';
+        
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+            btn.innerText = 'COPY';
+            btn.style.background = '#222';
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>
+
+```
